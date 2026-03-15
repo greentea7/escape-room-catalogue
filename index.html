@@ -2,13 +2,14 @@
 <html>
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Escape Room Catalogue</title>
 
 <style>
 
 body{
-  font-family:Arial;
-  margin:10px;
+  font-family: Arial, sans-serif;
+  margin: 10px;
   font-size:16px;
 }
 
@@ -21,8 +22,7 @@ h2{
   line-height:2.2;
 }
 
-select,
-input{
+select,input{
   font-size:16px;
   padding:8px;
   height:38px;
@@ -45,8 +45,18 @@ th,td{
   padding:10px;
 }
 
+td{
+  word-break:break-word;
+}
+
 th{
   background:#eee;
+}
+
+thead{
+  position:sticky;
+  top:0;
+  background:white;
 }
 
 </style>
@@ -63,26 +73,32 @@ th{
 <option value="">전체</option>
 </select>
 
+<br>
+
 별점 ≥
 <input id="starFilter" type="number" step="0.1">
 
+<br>
+
 난이도
 <select id="diffOp">
-  <option value="eq">=</option>
-  <option value="gte">≥</option>
+<option value="eq">=</option>
+<option value="gte">≥</option>
 </select>
 
 <input id="diffFilter" type="number">
 
-<button onclick="applyFilter()">필터</button>
+<br>
+
+<button onclick="applyFilter()">필터 적용</button>
 
 <br><br>
 
-<button onclick="sortStar(true)">별점↑</button>
-<button onclick="sortStar(false)">별점↓</button>
+<button onclick="sortStar(true)">별점 ↑</button>
+<button onclick="sortStar(false)">별점 ↓</button>
 
-<button onclick="sortDiff(true)">난이도↑</button>
-<button onclick="sortDiff(false)">난이도↓</button>
+<button onclick="sortDiff(true)">난이도 ↑</button>
+<button onclick="sortDiff(false)">난이도 ↓</button>
 
 </div>
 
@@ -105,8 +121,8 @@ th{
 
 <script>
 
-let data = [];
-let filteredData = [];
+let data=[];
+let filteredData=[];
 
 async function loadData(){
 
@@ -166,7 +182,8 @@ data.push({region,store,theme,star,diff,review});
 
 populateRegions(regions);
 
-filteredData = [...data];
+filteredData=[...data];
+
 render(filteredData);
 
 }
@@ -178,6 +195,7 @@ const select=document.getElementById("regionFilter");
 regions.forEach(r=>{
 
 const opt=document.createElement("option");
+
 opt.value=r;
 opt.textContent=r;
 
@@ -215,25 +233,25 @@ tbody.appendChild(tr);
 function applyFilter(){
 
 const region=document.getElementById("regionFilter").value;
-const starMin=parseFloat(document.getElementById("starFilter").value)||0;
-const diffValue = parseInt(document.getElementById("diffFilter").value);
-const diffOp = document.getElementById("diffOp").value;
 
-filteredData = data.filter(d=>{
+const starMin=parseFloat(document.getElementById("starFilter").value)||0;
+
+const diffValue=parseInt(document.getElementById("diffFilter").value);
+
+const diffOp=document.getElementById("diffOp").value;
+
+filteredData=data.filter(d=>{
 
 if(region && d.region!==region) return false;
-if(d.star < starMin) return false;
+
+if(d.star<starMin) return false;
 
 if(!isNaN(diffValue)){
 
-    if(diffOp === "eq" && d.diff !== diffValue)
-        return false;
+if(diffOp==="eq" && d.diff!==diffValue) return false;
 
-    if(diffOp === "gte" && d.diff < diffValue)
-        return false;
+if(diffOp==="gte" && d.diff<diffValue) return false;
 
-    if(diffOp === "lte" && d.diff > diffValue)
-        return false;
 }
 
 return true;
