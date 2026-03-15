@@ -106,6 +106,7 @@ th{
 <script>
 
 let data = [];
+let filteredData = [];
 
 async function loadData(){
 
@@ -165,7 +166,8 @@ data.push({region,store,theme,star,diff,review});
 
 populateRegions(regions);
 
-render(data);
+filteredData = [...data];
+render(filteredData);
 
 }
 
@@ -217,7 +219,7 @@ const starMin=parseFloat(document.getElementById("starFilter").value)||0;
 const diffValue = parseInt(document.getElementById("diffFilter").value);
 const diffOp = document.getElementById("diffOp").value;
 
-const filtered=data.filter(d=>{
+filteredData = data.filter(d=>{
 
 if(region && d.region!==region) return false;
 if(d.star < starMin) return false;
@@ -238,23 +240,23 @@ return true;
 
 });
 
-render(filtered);
+render(filteredData);
 
 }
 
 function sortStar(asc){
 
-const sorted=[...data].sort((a,b)=> asc? a.star-b.star : b.star-a.star);
+filteredData.sort((a,b)=> asc ? a.star-b.star : b.star-a.star);
 
-render(sorted);
+render(filteredData);
 
 }
 
 function sortDiff(asc){
 
-const sorted=[...data].sort((a,b)=> asc? a.diff-b.diff : b.diff-a.diff);
+filteredData.sort((a,b)=> asc ? a.diff-b.diff : b.diff-a.diff);
 
-render(sorted);
+render(filteredData);
 
 }
 
