@@ -7,26 +7,26 @@
 <style>
 
 body{
-    font-family:Arial;
-    margin:20px;
-}
-
-table{
-    border-collapse:collapse;
-    width:100%;
-}
-
-th,td{
-    border:1px solid #ccc;
-    padding:6px;
-}
-
-th{
-    background:#eee;
+  font-family:Arial;
+  margin:20px;
 }
 
 .controls{
-    margin-bottom:15px;
+  margin-bottom:15px;
+}
+
+table{
+  border-collapse:collapse;
+  width:100%;
+}
+
+th,td{
+  border:1px solid #ccc;
+  padding:6px;
+}
+
+th{
+  background:#eee;
 }
 
 </style>
@@ -38,13 +38,25 @@ th{
 
 <div class="controls">
 
+지역
+<select id="regionFilter">
+<option value="">전체</option>
+</select>
+
 별점 ≥
 <input id="starFilter" type="number" step="0.1">
 
-난이도 ≥
+난이도
+<select id="diffOp">
+  <option value="eq">=</option>
+  <option value="gte">≥</option>
+</select>
+
 <input id="diffFilter" type="number">
 
 <button onclick="applyFilter()">필터</button>
+
+<br><br>
 
 <button onclick="sortStar(true)">별점↑</button>
 <button onclick="sortStar(false)">별점↓</button>
@@ -58,6 +70,7 @@ th{
 
 <thead>
 <tr>
+<th>지역</th>
 <th>매장</th>
 <th>테마</th>
 <th>별점</th>
@@ -76,55 +89,85 @@ let data = [];
 
 async function loadData(){
 
-const url = "https://api.allorigins.win/raw?url=https://colory.mooo.com/bba/catalogue";
+const url="https://api.allorigins.win/raw?url=https://colory.mooo.com/bba/catalogue";
 
-const res = await fetch(url);
-const html = await res.text();
+const res=await fetch(url);
+const html=await res.text();
 
-const parser = new DOMParser();
-const doc = parser.parseFromString(html,"text/html");
+const parser=new DOMParser();
+const doc=parser.parseFromString(html,"text/html");
 
-const rows = doc.querySelectorAll(".themes-info tbody tr");
+const areas=doc.querySelectorAll(".themes-info > div");
 
-let lastStore = "";
+let regions=new Set();
+
+areas.forEach(area=>{
+
+const region=area.querySelector(".select-area").innerText;
+
+regions.add(region);
+
+let lastStore="";
+
+const rows=area.querySelectorAll("tbody tr");
 
 rows.forEach(row=>{
 
-const cells = row.querySelectorAll("td");
+const cells=row.querySelectorAll("td");
 
-let store, theme, star, diff, review;
+let store,theme,star,diff,review;
 
 if(cells.length===5){
 
-store = cells[0].innerText;
-theme = cells[1].innerText;
-star = parseFloat(cells[2].innerText);
-diff = parseInt(cells[3].innerText);
-review = parseInt(cells[4].innerText);
+store=cells[0].innerText;
+theme=cells[1].innerText;
+star=parseFloat(cells[2].innerText);
+diff=parseInt(cells[3].innerText);
+review=parseInt(cells[4].innerText);
 
-lastStore = store;
+lastStore=store;
 
 }else{
 
-store = lastStore;
-theme = cells[0].innerText;
-star = parseFloat(cells[1].innerText);
-diff = parseInt(cells[2].innerText);
-review = parseInt(cells[3].innerText);
+store=lastStore;
+theme=cells[0].innerText;
+star=parseFloat(cells[1].innerText);
+diff=parseInt(cells[2].innerText);
+review=parseInt(cells[3].innerText);
 
 }
 
-data.push({store,theme,star,diff,review});
+data.push({region,store,theme,star,diff,review});
 
 });
+
+});
+
+populateRegions(regions);
 
 render(data);
 
 }
 
+function populateRegions(regions){
+
+const select=document.getElementById("regionFilter");
+
+regions.forEach(r=>{
+
+const opt=document.createElement("option");
+opt.value=r;
+opt.textContent=r;
+
+select.appendChild(opt);
+
+});
+
+}
+
 function render(list){
 
-const tbody = document.querySelector("#table tbody");
+const tbody=document.querySelector("#table tbody");
 
 tbody.innerHTML="";
 
@@ -133,6 +176,7 @@ list.forEach(d=>{
 const tr=document.createElement("tr");
 
 tr.innerHTML=`
+<td>${d.region}</td>
 <td>${d.store}</td>
 <td>${d.theme}</td>
 <td>${d.star}</td>
@@ -148,12 +192,31 @@ tbody.appendChild(tr);
 
 function applyFilter(){
 
-const starMin = parseFloat(document.getElementById("starFilter").value)||0;
-const diffMin = parseInt(document.getElementById("diffFilter").value)||0;
+const region=document.getElementById("regionFilter").value;
+const starMin=parseFloat(document.getElementById("starFilter").value)||0;
+const diffValue = parseInt(document.getElementById("diffFilter").value);
+const diffOp = document.getElementById("diffOp").value;
 
-const filtered = data.filter(d=>
-d.star>=starMin && d.diff>=diffMin
-);
+const filtered=data.filter(d=>{
+
+if(region && d.region!==region) return false;
+if(d.star < starMin) return false;
+
+if(!isNaN(diffValue)){
+
+    if(diffOp === "eq" && d.diff !== diffValue)
+        return false;
+
+    if(diffOp === "gte" && d.diff < diffValue)
+        return false;
+
+    if(diffOp === "lte" && d.diff > diffValue)
+        return false;
+}
+
+return true;
+
+});
 
 render(filtered);
 
@@ -161,7 +224,7 @@ render(filtered);
 
 function sortStar(asc){
 
-const sorted=[...data].sort((a,b)=> asc ? a.star-b.star : b.star-a.star);
+const sorted=[...data].sort((a,b)=> asc? a.star-b.star : b.star-a.star);
 
 render(sorted);
 
@@ -169,7 +232,7 @@ render(sorted);
 
 function sortDiff(asc){
 
-const sorted=[...data].sort((a,b)=> asc ? a.diff-b.diff : b.diff-a.diff);
+const sorted=[...data].sort((a,b)=> asc? a.diff-b.diff : b.diff-a.diff);
 
 render(sorted);
 
