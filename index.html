@@ -264,16 +264,16 @@ render(filteredData);
 
 function sortStar(asc){
 
+applyFilter();   // ⭐ 현재 필터 다시 적용
 filteredData.sort((a,b)=> asc ? a.star-b.star : b.star-a.star);
-
 render(filteredData);
 
 }
 
 function sortDiff(asc){
 
+applyFilter();   // ⭐ 현재 필터 다시 적용  
 filteredData.sort((a,b)=> asc ? a.diff-b.diff : b.diff-a.diff);
-
 render(filteredData);
 
 }
